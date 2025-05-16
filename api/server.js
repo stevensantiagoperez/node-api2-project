@@ -4,6 +4,31 @@ const express = require('express')
 const Post = require('./posts/posts-model')
 
 const server = express()
+server.use(express.json( ))
+
+server.post('/api/posts', (req, res) => {
+    const post = req.body;
+    if(!post.title || !post.contents){
+        res.status(400).json({
+            message: 'Please provide title and contents for the post'
+        })
+    } else {
+    Post.insert(post)
+      .then(({ id }) => {
+        return Post.findById(id); // get full post by ID
+      })
+      .then(newPost => {
+        res.status(201).json(newPost);
+      })
+      .catch(err => {
+        res.status(500).json({
+          message: 'The posts information could not be retrieved',
+          err: err.message,
+          stack: err.stack,
+        });
+      });
+  }
+})
 
 server.get('/api/posts', (req, res) => {
    Post.find()
