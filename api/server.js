@@ -6,7 +6,36 @@ const Post = require('./posts/posts-model')
 const server = express()
 server.use(express.json( ))
 
-
+server.put('/api/posts/:id', async (req, res) => {
+    try{
+        const possiblePost = await Post.findById(req.params.id)
+        if(!possiblePost){
+            res.status(404).json({
+                message: 'The post with the specified ID does not exist'
+            })
+        } else {
+            if(!req.body.title || !req.body.contents) {
+                res.status(400).json({
+                    message: 'Please provide title and contents for the post'
+                })
+            } else {
+                const updatedCount = await Post.update(req.params.id, req.body);
+                if (updatedCount) {
+                    const updatedPost = await Post.findById(req.params.id);
+                    res.status(200).json(updatedPost);
+                } else {
+                    res.status(500).json({ message: "Update failed for unknown reasons" });
+                }
+            }
+        } 
+    } catch (err) {
+        res.status(500).json({
+        message: 'The post information could not be modified',
+        err: err.message,
+        stack: err.stack,
+        })
+    }
+})
 
 server.delete('/api/posts/:id', async (req, res) => {
   try {
